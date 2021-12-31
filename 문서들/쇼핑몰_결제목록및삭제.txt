@@ -1,0 +1,94 @@
+결제목록 / 결제취소
+header.jsp
+	<li><a href="GetUserPaymentListCtrl?cusid=<%=id %>">마이페이지</a></li>
+	<li><a href="GetUserBasketListCtrl?cusid=<%=id %>">장바구니</a></li>
+	<li><a href="GetUserPaymentListCtrl?cusid=<%=id %>">구입내역</a></li>
+---------------------------------------------------------------------------------------------------------------------
+----------------- GetUserPaymentListCtrl ----------------------------------------------------------------
+
+	String cusid = request.getParameter("cusid");
+
+	PaymentVO vo = new PaymentVO();
+	vo.setUserid(cusid);
+
+	PaymentDAO dao = new PaymentDAO();
+	ArrayList<PaymentVO> payList = new ArrayList<PaymentVO>();
+	payList = dao.getUserPaymentList(vo);
+
+	if(payList != null) {
+		request.setAttribute("payList", payList);
+		RequestDispatcher view = request.getRequestDispatcher("getUserPaymentList.jsp");
+		view.forward(request, response);			
+	} else {
+		response.sendRedirect("index.jsp");
+	}
+
+---------------------------------------------------------------------------------------------------------------------
+-------------------- PaymentDAO ----------------------------------------
+public ArrayList<PaymentVO> getUserPaymentList(PaymentVO vo){
+	ArrayList<PaymentVO> payList = null;
+	String sql;
+	try {
+		sql = "select * from payment where userid=?";
+		,..
+		stmt.setString(1, vo.getUserid());
+		..
+	} catch {
+		
+	}
+	return payList;
+}
+-------------------------------------------------------------------------------------------------------------
+------------------------------- getUserPaymentList.jsp -------------------------------------
+<%
+ArrayList<PaymentVO> payList = (ArrayList<PaymentVO>) request.getAttribute("payList");
+%>
+,.....
+	<c:set var="cnt" value="${payList.size() }" />
+	<c:forEach items="${payList }" var="pay" varStatus="status">
+		번호 : ${cnt }
+		결제번호 : ${pay.getPayid() }
+		결제방식 : ${pay.getPaytype() }
+		결제번호 : ${pay.getCreditnum() }
+		결제상품 : ${pay.getProid() }
+		결제수량 : ${pay.getProcnt() }
+		결제금액 : ${pay.getAmount() }
+		<a href="DeletePaymentCtrl?payid=${pay.getPayid() }&cnt=${pay.getProcnt() }&proid=${pay.getProid() }">취소</a>
+		<c:set var="cnt" value="${cnt -1 }" />
+	</c:forEach>
+
+-------------------------------------------------------------------------------------------------------------------
+------------------ DeletePaymentCtrl ------------------------------------------------------
+	String payid = request.getParameter("payid");
+	String proid = request.getParameter("proid");
+	String num = request.getParameter("cnt");
+
+	PaymentVO vo = new PaymentVO();
+	vo.setPayid(Integer.parseInt(payid));
+	vo.setProid(Integer.parseInt(proid));
+	vo.setProcnt(Integer.parseInt(num));
+
+	PaymentDAO dao = new PaymentDAO();
+	int cnt = dao.deletePayment(vo);
+
+	response.sendRedirect("GetUserPaymentListCtrl");
+--------------------------------------------------------------------------------------------------------------------------------------
+-------------------- PaymentDAO ----------------------------------------
+public int deletePayment(PaymentVO vo) {
+	int cnt = 0;
+	try {
+		sql = "delete from payment where payid=?";
+		,...
+		stmt.setInt(1, vo.getPayid());
+		,...
+	} catch() {
+
+	}
+	return cnt;
+}
+
+
+
+
+
+

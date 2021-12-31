@@ -1,0 +1,78 @@
+-------------------------------------------------
+------------  GetBoardCtrl -------------------
+String num = request.getParameter("num");
+if(num == null) reponse.sendRedirect("GetBoardListCtrl");
+int boardNum = Integer.parseInt(num);
+int pageNum = Integer.parseInt(request.getParameter("pageNum"));
+
+BoardVO vo = new BoardVO();
+vo.setNum(boardNum);
+
+BoardDAO dao = new BoardDAO();
+BoardVO board = dao.getBoard(vo);
+
+if(board!=null) {
+	request.setAttribute("board", board);
+	request.setAttribute("pageNum", pageNum);
+	RequestDispatcher view = request.getRequestDispatcher("getBoard.jsp");
+	view.forwrad(request, reponse);
+} else {
+	reponse.sendRedirect("GetBoardListCtrl");
+}
+-----------------------------------------------------
+--------------- BoardDAO ------------------------
+public BoardVO getBoard(BoardVO vo) {
+	BoardVO board = null;
+	String sql;
+	try {
+		con = DBConn.getConnection();
+		sql = "update board set board_count=board_count+1 where board_num=?";
+		stmt = con.preparedStatement(sql);
+		stmt.setInt(1, vo.getNum());
+		int cnt = stmt.executeUpdate();
+		stmt.close();
+		if(cnt>0) {
+			sql = "select * from board where board)num=?";
+			stmt = con.preparedStatement(sql);
+			stmt.setInt(1, vo.getNum());
+			rs = stmt.executeQuery();
+			if(rs.next()){
+				board = new BoardVO();
+				board.setNum(rs.getInt("board_num");
+				.....
+			}
+		}
+	} catch(Exception e) {
+		e.printStackTrace();
+	} finally {
+		DBConn.close(rs, stmt, con);
+	}
+	return board;
+}
+------------------------------------------------------------------------------------
+----------------------------   getBoard.jsp --------------------------------------
+<%@ page import="com.shop.model.*" %>
+<%
+	BoardVO board = (BoardVO) request.getAttribute("board");
+	int pageNum = Integer.parseInt(request.getAttribute("pageNum"));
+%>
+......
+	작성자 : ${board.getId() }
+	작성일 : ${board.getResDate() }
+	제목 : ${board.getSubject() }
+	내용 : ${board.getContent() }
+	첨부파일 : ${board.getFile() }
+	방문수 : ${board.getCount() }
+
+	<a href="BoardUpdateFormCtrl?num=${board.getNum() }&page=${pageNum }">수정</a>
+	<a href="DeleteBoardCtrl?num=${board.getNum() }">삭제</a>
+	<a href="BoardReplyFormCtrl?num=${board.getNum() }&page=${pageNum }">답글쓰기</a>
+	<a href="GetBoardListCtrl?page=${pageNum }">목록</a>
+
+
+
+
+
+
+
+}

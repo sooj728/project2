@@ -1,0 +1,82 @@
+----------------------------------------------------------------------------
+---------- BoardUpdateFormCtrl ------------------------------
+int num = Integer.parseInt(request.getParameter("num"));
+int pageNum = Integer.parseInt(request.getParameter("page"));
+
+BoardVO vo = new BoardVO();
+vo.setNum(num);
+
+BoradDAO dao = new BoardDAO();
+BoardVO board = dao.getBoard(vo);
+
+if(board != null) {
+	request.setAttribute("board", board);
+	request.setAttribute("pageNum", pageNum);
+	RequestDispatcher view = request.getRequestDispatcher("updateBoard.jsp");
+	view.forward(request, response);
+} else {
+	response.sendRedirect("GetBoardListCtrl");
+}
+---------------------------------------------------------------------------------
+-------------- updateBoard.jsp --------------------------------------------
+<%@ page imgport="com.shop.model.*" %>
+<%
+	BoardVO board = (BoardVO) request.getAttribute("board");
+	int pageNum = (int) request.getAttribute("pageNum");
+%>
+,.......
+	<form action="UpdateBoardCtrl?page=${pageNum }">
+		<input type="hidden" name="board_num" value="${board.getNum() }" />
+	작성자 : <input type="text" name="board_id" value="${board.getId() }" readonly />
+	제목 : <input type="text" name="board_subject" value="${board.getSubject() }" />	
+	내용 : <textarea name="board_subject">
+		${board.getSubject() }
+		</textarea>
+	<c:if test="${board.getReLevel() == 0 }">
+	파일 : <input type="text" name="board_file" value="${board.getFile() }" />
+	</c:if>
+	<input type="reset" value="취소" class="btn btn-primary" />
+	<input type="submit" value="수정" class="btn btn-primary" />
+	<a href="GetBoardListCtrl?page=${pageNum }" class="btn btn-primary">목록</a>
+	</form>
+----------------------------------------------------------------------------------------
+-----------  UpdateBoardCtrl  --------------------------------------------
+
+	BoardDAO dao = new BoardDAO():
+	BoardVO vo = new BoardVO();
+	vo.setNum(Integer.parseInt(request.getParameter("board_num")));
+	vo.setId(request.getParameter("board_id"));
+	vo.setSubject(request.getParameter("board_subject"));
+	vo.setContent(request.getParameter("board_content"));
+	vo.setFile(request.getParameter("board_file"));
+
+	int cnt = dao.updateBoard(vo);
+
+	if(cnt != 0) {
+		response.sendRedirect("GetBoardListCtrl");
+	} else {
+		response.sendRedirect("BoardUpdateFormCtrl");
+	}
+
+----------------------------------------------------------------------------------------------------------
+--------------------- BoardDAO ----------------------------------------
+public int updateBoard(BoardVO vo){
+	int cnt = 0;
+	String sql;
+	try {
+		con = DBConn.getConnection();
+		sql = "update board set board_subject=?, board_content=?, board_file=? where board_num=?";
+		stmt = con.preparedStatement(sql);
+		stmt.setString(1, vo.	getSubject());
+		stmt.setString(2, vo.	getContent());
+		stmt.setString(3, vo.	getFile());
+		stmt.setInt(4, vo.getNum());
+		cnt = stmt.executeUpdate();
+	} catch(Exception e) {
+		e.printStackTrace();
+	} finally {
+		DBConn.close();
+	}
+	return cnt;
+}
+

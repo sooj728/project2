@@ -1,0 +1,124 @@
+상품상세보기(getProduct.jsp) 페이지에서 [장바구니 담기] <a href="AddBasketCtrl?proid=<%=pro.getProid() %>&uid=<%=uid %>" 클릭
+
+---------------------------------------------------
+------------------- AddBasketCtrl --------------
+
+int proid = Integer.parseInt(request.getParameter("proid"));
+Sting uid = request.getParameter("uid");
+
+BasketVO vo = new BasketVO();
+vo.setProid(proid);
+vo.setUserid(uid);
+vo.setCnt(1);
+vo.setValidity(1);
+
+BasketDAO dao = new BasketDAO();
+int cnt = dao.addBasket(vo);
+
+if(cnt >0) {
+	response.sendRedirect("GetUserBasketListCtrl?cusid="+uid+"&proid="+proid);
+} else {
+	response.sendRedirect("GetUserBasketListCtrl?cusid="+uid);
+}
+---------------------------------------------------------------
+------------------- BasketDAO -----------------------------
+public int addBasket(BasketVO vo) {
+	int cnt=0;
+	String sql;
+	try {
+
+	} catch(Exception e) {
+
+	} finally {
+		DBConn.close();
+	}
+	return cnt;
+}
+-----------------------------------------------------------------------------
+--------------------- DeleteBasketCtrl -----------------------------------
+int proid = Integer.parseInt(request.getParameter("proid"));
+Sting uid = request.getParameter("uid");
+
+BasketVO vo = new BasketVO();
+vo.setProid(proid);
+vo.setUserid(uid);
+
+BasketDAO dao = new BasketDAO();
+int cnt = dao.deleteBasket(vo);
+
+if(cnt >0) {
+	response.sendRedirect("GetUserBasketListCtrl?cusid="+uid+"&proid="+proid);
+} else {
+	response.sendRedirect("GetUserBasketListCtrl?cusid="+uid);
+}
+----------------------------------------------------------------------------------
+---------------------  BasketDAO ---------------------------------------------
+public int deleteBasket(BasketVO vo) {
+	int cnt=0;
+	String sql;
+	try {
+
+	} catch(Exception e) {
+
+	} finally {
+		DBConn.close();
+	}
+	return cnt;
+}
+--------------------------------------------------------------------------------
+-------------------------- GetUserBasketListCtrl ------------------------------
+int proid = Integer.parseInt(request.getParameter("proid"));
+Sting uid = request.getParameter("uid");
+
+BasketVO vo = new BasketVO();
+vo.setUserid(uid);
+
+BasketDAO dao = new BasketDAO();
+ArrayList<BasketVO> basketList = new ArrayList<BasketVO>();
+basketList = dao.getUserBasketList(vo);
+
+if(basketList != null) {
+	request.setAttribute("basketList", basketList);
+	RequestDispatcher view = request.getRequestDispatcher("getUserBasketList.jsp");
+	view.forward(request, response);
+} else {
+	response.sendRedirect("GetUserBasketListCtrl?cusid="+uid);
+}
+----------------------------------------------------------------------------------------
+------------------------------- BasketDAO ---------------------------
+public ArrayList<BasketVO> getUserBasketList(BasketVO vo) {
+	ArrayList<BasketVO> basketList = null;
+	try {
+		//con 열기
+		//sql구문 - 받은 사용자 아이디에 만족하는 장바구니 정보 검색
+		//vo.getUserid() 조건값 넣기
+		//stmt 열기
+		//sql문 실행
+		//실행결과를 반복하여 vo에 담은 후 basketList에 add해줌
+		while(rs.next()){
+			BasketVO basket = new BasketVO();
+			basket.setBasketid(rs.getInt("basketid"));		
+			,...
+			basketList.add(basket);
+		}
+	} catch(Exception e) {
+
+	} finally {
+		DBConn.close();
+	}
+	return basketList;
+}
+--------------------------------------------------------------------------------------------
+----------------------- getUserBasketList.jsp ------------------------------------------
+<%
+	ArrayList<BasketVO> basketList = (ArrayList<BasketVO>) request.getAttribute("basketList");
+%>
+	<c:set var="cnt" value="${basketList.size() }" />
+	<c:forEach items="${basketList }" var="basket" varStatus="status">
+		${cnt }
+		${basket.getBasketid() }
+		,...
+		<a href="DeleteBasketCtrl?basketid=${basket.getBasketid() }&cusid=${basket.getUserid() }">삭제</a>
+		<c:set var="cnt" value="${cnt -1 }" />
+	</c:forEach>
+

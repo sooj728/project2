@@ -1,0 +1,74 @@
+기본 MVC2 패턴(프로세스)					
+	사용자 입력	요청
+			parameter		메소드(vo)	vo
+	jsp(html)		->		Ctrl	-> 	DAO	->	DBMS
+		rs		custom
+	DBMS 	->	DAO	->	Ctrl	->	index.jsp
+
+	
+	사용자		시스템
+	jsp	->	Ctrl	->	DAO	->	DBMS
+		<-		<-		<-
+
+	model:VO = 전달할 데이터의 저장객체를 생성하는 클래스
+	biz:DAO = DBMS에 실제 연결하여 필요한 작업을 하는 클래스
+	controller:Ctrl = 사용자로 부터 데이터를 받아서 VO에 저장한 후 DAO에 전달하여 처리하게 한 후 그 결과를 다시 받아서 jsp문서로 사용자에게 요청한 내용을 전달
+	view:jsp문서
+
+	회원(CustomVO)기능
+		관리자(CustomDAO) : 로그인, 회원목록, 회원정보수정, 회원삭제
+		일반회원(CustomDAO2) : 로그인, 회원가입, 마이페이지, 회원탈퇴
+		마이페이지
+				name, pw,..		dao.updateCustom(vo)	vo
+		mypage.jsp	->	UpdateCtrl	->	CustomDAO2	->	DBMS
+							cnt			num
+		mypage.jsp		<-			<-			<-
+
+	제품(ProVO)기능
+		관리자(ProDAO) : 제품목록, 제품등록, 제품상세보기, 제품수정, 제품삭제
+		1. 제품목록
+				메뉴(제품관리)클릭		dao.getProList()
+		admin.jsp		->	GetProListCtrl	->		ProDAO	->	DBMS
+				proList			proList			rs
+		getProList.jsp	<-			<-			<-
+
+		2. 제품 상세보기
+				해당제품아이디클릭		dao.getPro(vo)		vo
+		getProList.jsp	->		GetProCtrl	->	ProDAO	->	DBMS
+				pro				pro		rs
+		getPro.jsp	<-				<-		<-
+
+		3. 제품등록
+				name,price...			dao.addPro(vo)	vo
+		addPro.jsp	->		AddProCtrl	->	ProDAO	->	DBMS
+								cnt		num
+		GetProListCtrl	<-				<-		<-
+		(getProList.jsp)
+		
+		4. 제품수정
+				name,price...			dao.updatePro(vo)		vo
+		updatePro.jsp	->		UpdateProCtrl	->		ProDAO	->	DBMS
+								cnt			num
+		GetProListCtrl	<-				<-			<-
+		(getProList.jsp)
+
+
+		5. 제품삭제
+				id			dao.deletePro(vo)			vo
+		getPro.jsp	->		DeleteProCtrl	->		ProDAO	->	DBMS
+								cnt			num
+		GetProListCtrl	<-				<-			<-
+		(getProList.jsp)
+
+		일반회원(ProDAO2) : 제품목록, 제품상세보기
+
+		방문자(ProDAO2) : 제품목록
+	공지사항(InformVO) 기능
+		관리자 : 글목록, 글등록, 글보기, 글수정, 글삭제
+		일반회원 : 글목록, 글보기
+		방문자 : 글목록
+	판매기능
+		결제기능
+		장바구니 기능
+
+	

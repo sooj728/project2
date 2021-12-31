@@ -1,0 +1,43 @@
+/* 고객센터 테이블 생성 */
+create table qna (qnaid int primary key, tit varchar2(200) not null, con varchar2(500) not null, author varchar2(50) not null,
+pw int not null, regdate date default sysdate);
+/* 고객센터 테이블에 데이터 삽입 전에 시퀀스 생성 */
+create sequence scott.qna_seq increment by 1 start with 1 minvalue 1 maxvalue 999999 nocycle nocache;
+
+/* 상품 테이블 생성 */
+create table prolist (prolistid int primary key, pcode varchar2(30) unique, pname varchar2(50) not null, nat varchar2(50) not null, genre varchar2(50) not null,
+price int not null, img varchar2(500));
+/* 상품 테이블에 데이터 삽입 전에 시퀀스 생성 */
+create sequence scott.prolist_seq increment by 1 start with 1 minvalue 1 maxvalue 999999 nocycle nocache;
+
+/* 결제 테이블 생성 */
+create table buy (buyid int primary key, bcode varchar2(30) unique, buyer varchar2(50) not null,
+bname varchar2(50) not null, cnt int not null, price int not null, cpuse varchar2(10) default 'no');
+/* 결제 테이블에 데이터 삽입 전에 시퀀스 생성 */
+create sequence scott.buy_seq increment by 1 start with 1 minvalue 1 maxvalue 999999 nocycle nocache;
+
+/* 장바구니 테이블 생성 */
+create table orderbasket (orderbasketid int primary key, ocode varchar2(30) unique, buyer varchar2(50) not null,
+oname varchar2(50) not null, cnt int not null);
+/* 장바구니 테이블에 데이터 삽입 전에 시퀀스 생성 */
+create sequence scott.orderbasket_seq increment by 1 start with 1 minvalue 1 maxvalue 999999 nocycle nocache;
+
+/* 회원 테이블 생성 */
+create table usertb(usertbid int primary key, u_id varchar2(50) unique, pw varchar2(50) not null, 
+uname varchar2(50) not null, email varchar2(50) not null, q varchar2(200) not null, 
+a varchar2(200) not null, add1 varchar2(100) not null, add2 varchar2(200) not null, 
+regdate date default sysdate, cp int default 0);
+/* 회원 테이블에 데이터 삽입 전에 시퀀스 생성 */
+create sequence scott.usertb_seq increment by 1 start with 1 minvalue 1 maxvalue 999999 nocycle nocache;
+
+/* 관리자 전용 판매 테이블 */
+create table sales(salesid int primary key, scode varchar2(30) unique, cnt int not null, 
+price int not null, dc decimal default 0, pay int not null);
+/* 관리자 전용 판매 테이블에 데이터 삽입 전에 시퀀스 생성 */
+create sequence scott.sales_seq increment by 1 start with 1 minvalue 1 maxvalue 999999 nocycle nocache;
+
+/* 쿠폰 테이블 */
+create table coupon(couponid int primary key, ccode varchar2(30) unique, cname varchar2(50) not null, 
+dc decimal not null, use varchar2(10) default 'no');
+/* 쿠폰 테이블에 데이터 삽입 전에 시퀀스 생성 */
+create sequence scott.coupon_seq increment by 1 start with 1 minvalue 1 maxvalue 999999 nocycle nocache;

@@ -1,0 +1,188 @@
+
+
+
+---------------------------------------------------------------------------------------------------------------
+-------------- GetBoardListCtrl -------------------------------
+
+	int sPage = 1;
+	String page = request.getParameter("page");
+	
+	if(page != null) sPage = Integer.parseInt(page);
+
+	String opt = request.getParameter("opt");		//0, 1, 2, 3 -> 0선택 -> 제목
+	String condition = request.getParameter("condition");	//검색어 -> 이벤트
+
+	HashMap<String, Object> listOpt = new HashMap<String, Object>();		//검색 방법과 입력 키워드 맵에 담기
+	listOpt.put("opt", opt);
+	listOpt.put("condition", condition);
+	listOpt.put("start", sPage*10-9);
+
+	BoardDAO dao = new BoardDAO();
+	int listCount = dao.getBoardListCount(listOpt);
+	ArrayList<BoardVO> boardList = dao.getBoardList(listOpt);
+	
+	int maxPage = (int) (listCount/10.0 + 0.9);	//전체 페이지  수
+	int startPage = (int) (sPage/5.0 + 0.8) * 5 - 4;	//시작 페이지 번호
+	int endPage = (sPage + 4);
+	if(endPage > maxPage) endPage = maxPage;
+
+	request.setAttribute("spage", sPage);
+	request.setAttribute("maxPage", maxPage);
+	request.setAttribute("startPage", startPage);
+	request.setAttribute("endPage", endPage);
+
+	request.setAttribute("boardList", boardList);
+	RequestDispatcher view = request.getRequestDispatcher("getBoardList.jsp");	
+	view.forward(request, response);
+
+--------------------------------------------------------------------------------------------------------------
+----------	BoardDAO -----------------------------
+
+	public int getBoardListCount(HashMap<String, Object> listOpt) {
+		String opt = (String) listOpt.get("opt");			//"0"
+		String condition = (String) listOpt.get("condition");	//"이벤트"
+		int cnt;
+		try {
+			con = DBConn.getConnection();
+			if(opt == null) {  //리스트 페이지를 처음 접속했을 때
+				sql = "select count(*) from board";
+				stmt = con.preparedStatement(sql);
+			} else if(opt == "0") {  //제목으로 검색한 글의 개수
+				sql = "select count(*) from board where board_subject like ?";
+				stmt = con.preparedStatement(sql);
+				stmt.setString(1, '%'+condition+'%');		
+			} else if(opt == "1") {  //내용으로 검색한 글의 개수
+				sql = "select count(*) from board where board_content like ?";
+				stmt = con.preparedStatement(sql);		
+				stmt.setString(1, '%'+condition+'%');
+			} else if(opt == "2") {  //내용으로 검색한 글의 개수
+				sql = "select count(*) from board where board_subject like ? or board_content like ?";
+				stmt = con.preparedStatement(sql);
+				stmt.setString(1, '%'+condition+'%');		
+				stmt.setString(2, '%'+condition+'%');
+			} else if(opt.equals("3")) {
+				sql = "select count(*) from board where board_id like ?";
+				stmt = con.preparedStatement(sql);		
+				stmt.setString(1, '%'+condition+'%');
+			}
+			rs = stmt.executeQuery();
+			if(rs.next()) cnt = rs.getInt(1);
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			DBConn.close(rs, stmt, con);
+		}
+		return cnt;
+	}
+	
+	public ArrayList<BoardVO> getBoardList(HashMap<String, Object> listOpt) {
+		ArrayList<BoardVO> boardList = null;
+		String opt = (String) listOpt.get("opt");			//"0"
+		String condition = (String) listOpt.get("condition");	//"이벤트"
+		int start = (Integer) listOpt.get("start");			//시작 페이지 또는 현재 페이지
+		String sql = null;
+		try {
+			if(opt == null) {  //리스트 페이지를 처음 접속했을 때
+				sql = "select * from (select rownum, board_num, board_id,,,,. from (select * board order by board_re_ref desc, board_re_seq)) rnum>=? and rnum<=?";
+				stmt.setInt(1, start);
+				stmt.setInt(2, start+9);
+				stmt = con.prepearedStatement(sql);
+			} else if(opt == "0") {  //제목으로 검색한 글의 개수
+				sql = "select * from (select rownum, board_num, board_id,,,,. from (select * board where board_subject like ? order by board_re_ref desc, board_re_seq)) rnum>=? and rnum<=?";
+				stmt = con.prepearedStatement(sql);
+				stmt.setString(1, '%'+condition+'%');
+				stmt.setInt(2, start);
+				stmt.setInt(3, start+9);		
+			} else if(opt == "1") {  //내용으로 검색한 글의 개수
+				sql = "select * from (select rownum, board_num, board_id,,,,. from (select * board where board_content like ? order by board_re_ref desc, board_re_seq)) rnum>=? and rnum<=?";
+				stmt = con.prepearedStatement(sql);		
+				stmt.setString(1, '%'+condition+'%');
+				stmt.setInt(2, start);
+				stmt.setInt(3, start+9);
+			} else if(opt == "2") {  //제목+내용으로 검색한 글의 개수
+				sql = "select * from (select rownum, board_num, board_id,,,,. from (select * board where board_subject like ? or board_content like ? order by board_re_ref desc, board_re_seq)) rnum>=? and rnum<=?";
+				sql = "select count(*) from board where board_subject like ? or board_content like ?";
+				stmt = con.prepearedStatement(sql);
+				stmt.setString(1, '%'+condition+'%');		
+				stmt.setString(2, '%'+condition+'%');
+				stmt.setInt(3, start);
+				stmt.setInt(4, start+9);
+			} else if(opt.equals("3")) {
+				sql = "select * from (select rownum, board_num, board_id,,,,. from (select * board where board_id like ? order by board_re_ref desc, board_re_seq)) rnum>=? and rnum<=?";
+				stmt = con.prepearedStatement(sql);		
+				stmt.setString(1, '%'+condition+'%');
+				stmt.setInt(2, start);
+				stmt.setInt(3, start+9);
+			}
+			rs = stmt.executeQuery();
+			while(rs.next()){
+				BoardVO board = new BoardVO();
+				board.setNum(rs.getInt("board_num"));
+				,...
+				boardList.add(board);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			DBConn.close(rs, stmt, con);
+		}
+		return boardList;
+	}
+		
+---------------------------------------------------------------------------------------------------------------
+<%
+	ArrayList<BoardVO> boardList = (ArrayList<BoardVO>) request.getAttribute("boardList");
+	int spage = (int) request.getAttribute("spage");
+	int maxPage = (int) request.getAttribute("maxPage");
+	int startPage = (int) request.getAttribute("startPage");
+	int endPage = (int) request.getAttribute("endPage");
+%>
+..,,,
+	<tbody>
+	<c:set var="cnt" value="${boardList.size() }" />
+	<c:forEach items="${boardList }" var="board" varStatus="status">
+		<tr>
+			<td>${cnt }</td>
+			<td>
+				<a href="GetBoardCtrl?num=${board.getNum() }&pageNum=${pageNum }">${board.getSubject() }</a>
+			</td>
+			<td>${board.getId() }</td>
+			<td>${board.getResDate() }</td>
+			<td>${board.getCount() }</td>
+		</tr>
+		<c:set var="cnt" value="${cnt - 1 }" />		
+	</c:forEach>
+	</tbody>
+</table>
+	<div class="pageGroup">
+		<c:if test="${startPage != 1 }">
+			<a href="GetBoardListCtrl?page=${startPage - 1 }">[이전]</a>
+		</c:if>
+		<c:forEach var="pageNum" begin="${startPage }" end="${endPage }"> 
+			<c:if test="${pageNum == spage }">
+				${pageNum }&nbsp;&nbsp;
+			</c:if>
+			<c:if test="${pageNum != spage }">
+				<a href="GetBoardListCtrl?page=${pageNum }">${pageNum }&nbsp;&nbsp;</a>
+			</c:if>
+		</c:forEach>
+		<c:if test="${endPage != maxPage }">
+			<a href="GetBoardListCtrl?page=${endPage + 1 }">[이전]</a>
+		</c:if>
+	</div>
+	<div id="searchForm">
+	        <form> <!-- action 속성이 없는 경우 현재 문서에서 데이터 전송과 받음이 이루어짐 -->
+	            <select name="opt">
+	                <option value="0">제목</option>
+	                <option value="1">내용</option>
+	                <option value="2">제목+내용</option>
+	                <option value="3">글쓴이</option>
+	            </select>
+	            <input type="text" size="20" name="condition"/>&nbsp;
+	            <input type="submit" value="검색"/>
+	        </form>    
+	    </div>
+	</div>
+....,
+-------------------------------------------------------------------------------------------------
+

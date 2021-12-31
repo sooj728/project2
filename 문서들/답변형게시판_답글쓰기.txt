@@ -1,0 +1,113 @@
+--------------------------------------------------------------
+--------------------  BoardReplyFormCtrl ---------------
+int pageNum = Integer.parseInt(request.getParameter("page"));
+int num = Integer.parseInt(request.getParameter("num"));
+
+BoardDAO dao = new BoardDAO();
+BoardVO vo = new BoardVO();
+vo.setNum(num);
+
+BoardVO board = dao.getDetail(vo);
+if(board!=null) {
+	request.setAttribute("board",board);
+	request.setAttribute("page",pageNum);
+	RequestDispatcher view = request.getRequestDispatcher("boardReplyForm.jsp");
+	view.forward(request, response);
+} else {
+	response.sendRedirect("GetBoardListCtrl");
+}
+
+--------------------------------------------------------------------------
+-----------------  BoardDAO -----------------------------------------
+public BoardVO getDetail(BoardVO vo) {
+	BoardVO board = null;
+	String sql;
+	try {
+		con = DBConn.getConnection();
+		sql = "select * from board where board_num=?";
+		stmt = con.prepareStatement();
+		stmt.setInt(1, vo.getNum());
+		rs = stmt.executeQuery();
+		if(rs.next()) {
+			board = new BoardVO();
+			board.setNum(rs,getInt("board_num"));
+			board.setId(rs,getString("board_id"));
+			,.....
+		}
+	} catch(Exception e) {
+		e.printStackTrace();
+	}
+	return board;
+}
+----------------------------------------------------------------------------------
+---------------------  boardReplyForm.jsp -----------------------------------
+<%@ page import="com.shop.model.*" %>
+<%
+	BoardVO board = (BoardVO) request.getAttribute("board");
+%>
+,....
+<form action="BoardReplyAddCtrl?page=${page }" name="boardForm">
+	<input type="hidden" name="board_id" value="${session.getAttribute('cusid') }" />
+	<input type="hidden" name="board_num" value="${board.getNum() }" />
+	<input type="hidden" name="board_re_ref" value="${board.getReRef() }" />
+	<input type="hidden" name="board_re_lev" value="${board.getReLevel() }" />
+	<input type="hidden" name="board_re_seq" value="${board.getReSeq() }" />
+	작성자 : ${session.getAttribue("cusid") }
+	제목 : <input type="text" name="board_subject" />
+	내용 : <textarea name="board_content" /></textarea>
+	<input type="reset" value="취소" />
+	<input type="submit" value="등록" />
+	<input type="button" value="목록" onclick="javascript:history.go(-1)" />	
+</form>
+,....
+--------------------------------------------------------------------------------------------------------
+------------------------  BoardReplyAddCtrl ------------------------------------------------------
+BoardVO vo = new BoardVO();
+vo.setNum(Integer.parseInt(request.getParameter("board_num")));
+vo.setId(request.getParameter("board_id"));
+vo.setReRef(Integer.parseInt(request.getParameter("board_re_ref")));
+vo.setReLevel(Integer.parseInt(request.getParameter("board_re_lev"))+1);	//답글의 깊이
+vo.setReSeq(Integer.parseInt(request.getParameter("board_re_seq"))+1);	//답글의 순서
+vo.setSubject(request.getParameter("board_subject"));
+vo.setContent(request.getParameter("board_content"));
+
+BoardDAO dao = new BoardDAO();
+int cnt = dao.boardReplyInsert(vo);
+if(cnt > 0) {
+	response.sendRedirect("GetBoardListCtrl");
+} else {
+	response.sendRedirect("BoardReplyFormCtrl");
+}
+-----------------------------------------------------------------------------------------------------------
+-------------------------  BoardDAO -------------------------------------------------------------------
+public int boardReplyInsert(BoardVO vo) {
+	int cnt = 0;
+	String sql;
+	try {
+		con = DBConn.getConnection();
+		sql = "insert into board values(?, ?, ?, ?, ?, ?, ?, ?, ?, sysdate)";
+		stmt = con.prepareStatement();
+		stmt.setInt(1, vo.getNum());
+		stmt.setString(2, vo.getId());
+		stmt.setString(3, vo.getSubject());
+		stmt.setString(4, vo.getContent());
+		stmt.setString(5, vo.getFile());
+		if(vo.getReSeq()==0) {	//답변글이 아닌 경우 부모글의 게시글 번호를 넣음 
+			stmt.setInt(6, vo.getNum());
+		} else {	
+			stmt.setInt(6, vo.getReRef());
+		}
+		stmt.setInt(7, vo.getReLevel());
+		stmt.setInt(8, vo.getReSeq());
+		stmt.setInt(9, 0);		
+		cnt = stmt.executeUpdate();
+	} catch(Exception e){
+		e.printStackTrace();
+	} finally {
+		DBConn.close(stmt, con);
+	}
+	return cnt;
+}
+
+
+

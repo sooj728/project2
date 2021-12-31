@@ -1,0 +1,26 @@
+-----------------------------------------------------------------
+---------------  DeleteBoardCtrl ----------------------------
+int num = Integer.parseInt(request.getParameter("num"));
+BoardDAO dao = new BoardDAO();
+int cnt = dao.deleteBoard(num);
+
+response.sendRedirect("GetBoardListCtrl");
+-----------------------------------------------------------------
+-------------- BoardDAO -----------------------------------
+public int deleteBoard(int num) {
+	int cnt = 0;
+	String sql;
+	try {
+		con = DBConn.getConnection();
+		sql = "delete from board where board_num=?";
+		stmt = con.preparedStatement();
+		stmt.setInt(1, num);
+		cnt = stmt.executeUpdate();
+	} catch(Exception e) {
+		e.printStackTarce();
+	} finally {
+		DBConn.close(stmt, con);
+	}
+	return cnt;
+}
+

@@ -1,0 +1,272 @@
+---------------------------------------  DB 테이블 생성 ---------------------------
+CREATE TABLE board(
+  board_num NUMBER NOT NULL PRIMARY KEY,
+  board_id VARCHAR2(50),
+  board_subject VARCHAR2(100),
+  board_content VARCHAR2(2000),
+  board_file VARCHAR2(100),
+  board_re_ref NUMBER,
+  board_re_lev NUMBER,
+  board_re_seq NUMBER,
+  board_count NUMBER,
+  board_date DATE
+);
+ 
+-- board_num : 게시물 글번호
+-- board_id : 글작성자 ID
+-- board_subject : 글 제목
+-- board_content : 글 내용
+-- board_file : 첨부파일 이름
+-- board_re_ref : 글 그룹번호
+-- board_re_lev : 답변글 깊이
+-- board_re_seq : 답변글 순서
+-- board_count : 글 조회수
+-- board_date 작성날짜
+
+
+--------------------------------------------  BoardVO -------------------------------------
+package com.shop.model;
+
+import java.util.Date;
+
+public class BoardVO {
+	private int num;
+	private String id;
+	private String subject;
+	private String content;
+	private String file;
+	private int reRef;
+	private int reLevel;
+	private int reSeq;
+	private int count;
+	private Date resDate;
+	public int getNum() {
+		return num;
+	}
+	public void setNum(int num) {
+		this.num = num;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public String getSubject() {
+		return subject;
+	}
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+	public String getContent() {
+		return content;
+	}
+	public void setContent(String content) {
+		this.content = content;
+	}
+	public String getFile() {
+		return file;
+	}
+	public void setFile(String file) {
+		this.file = file;
+	}
+	public int getReRef() {
+		return reRef;
+	}
+	public void setReRef(int reRef) {
+		this.reRef = reRef;
+	}
+	public int getReLevel() {
+		return reLevel;
+	}
+	public void setReLevel(int reLevel) {
+		this.reLevel = reLevel;
+	}
+	public int getReSeq() {
+		return reSeq;
+	}
+	public void setReSeq(int reSeq) {
+		this.reSeq = reSeq;
+	}
+	public int getCount() {
+		return count;
+	}
+	public void setCount(int count) {
+		this.count = count;
+	}
+	public Date getResDate() {
+		return resDate;
+	}
+	public void setResDate(Date resDate) {
+		this.resDate = resDate;
+	}
+}
+
+
+--------------  BoardDAO -----------------------
+
+package com.shop.biz;
+
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+
+import com.shop.model.BoardVO;
+import com.shop.model.DBConn;
+
+public class BoardDAO {
+	private Connection con = null;
+	private PreparedStatement stmt = null;
+	private ResultSet rs = null;
+	public int addBoard(BoardVO vo) {
+		int cnt = 0;
+		try {
+			int num = this.getSeq();
+			con = DBConn.getConnection();
+			String sql = "insert into board values (?,?,?,?,?,?,?,?,?,sysdate)";
+			stmt = con.prepareStatement(sql);
+			stmt.setInt(1, num);
+			stmt.setString(2, vo.getId());
+			stmt.setString(3, vo.getSubject());
+			stmt.setString(4, vo.getContent());
+			stmt.setString(5, vo.getFile());
+			stmt.setInt(6, vo.getReRef());
+			stmt.setInt(7, vo.getReLevel());
+			stmt.setInt(8, vo.getReSeq());
+			stmt.setInt(9, 0);
+			cnt = stmt.executeUpdate();
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			DBConn.close(stmt, con);
+		}
+		return cnt;
+	}
+  public int getSeq() {
+        int result = 1;
+        
+        try {
+        	con = DBConn.getConnection();
+            
+            // 시퀀스 값을 가져온다. (DUAL : 시퀀스 값을 가져오기위한 임시 테이블)
+            StringBuffer sql = new StringBuffer();
+            sql.append("SELECT BOARD_NUM.NEXTVAL FROM DUAL");
+            
+            stmt = con.prepareStatement(sql.toString());
+            // 쿼리 실행
+            rs = stmt.executeQuery();
+            if(rs.next())    result = rs.getInt(1); 
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        DBConn.close(stmt, con);
+        return result;    
+    }
+}
+
+----------- AddBoardCtrl -------------------
+
+package com.shop.controller;
+
+import java.io.IOException;
+import java.util.Enumeration;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.oreilly.servlet.MultipartRequest;
+import com.oreilly.servlet.multipart.DefaultFileRenamePolicy;
+import com.shop.biz.BoardDAO;
+import com.shop.model.BoardVO;
+//글쓰기 - cos.jar 임포트 후에 해야함
+@WebServlet("/AddBoardCtrl")
+public class AddBoardCtrl extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // 업로드 파일 사이즈
+        int fileSize= 5*1024*1024;
+        // 업로드될 폴더 경로
+        //String saveDirectory = request.getServletContext().getRealPath("/upload");  //상대경로 설정시
+
+        try {
+            
+            // 파일업로드 
+            //MultipartRequest multi = new MultipartRequest(request, saveDirectory, fileSize, "utf-8", new DefaultFileRenamePolicy());
+			String saveDirectory = "D:\\kim\\jsp\\web04\\WebContent\\img";
+			MultipartRequest multi = new MultipartRequest(request, saveDirectory, fileSize, "utf-8");		//덮어쓰기
+            // 파일이름 가져오기
+            String fileName = "";
+            Enumeration<String> names = multi.getFileNames();
+            if(names.hasMoreElements()) {
+                String name = names.nextElement();
+                fileName = multi.getFilesystemName(name);
+            }
+            
+            BoardDAO dao = new BoardDAO();
+            BoardVO board = new BoardVO();
+            
+            board.setNum(dao.getSeq()); // 시퀀스값 가져와 세팅
+            board.setId(multi.getParameter("board_id")); // 히든값
+            board.setSubject(multi.getParameter("board_subject"));
+            board.setContent(multi.getParameter("board_content"));
+            board.setFile(multi.getParameter("board_file"));
+        
+    		int cnt = dao.addBoard(board);
+    		
+    		if(cnt != 0) {
+    			response.sendRedirect("GetBoardListCtrl");
+    		} else {
+    			response.sendRedirect("addBoard.jsp");
+    		} 
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("글 작성 오류 : " + e.getMessage());
+        }
+	}
+}
+
+
+------------------- addBoard.jsp ---------------------------
+	    <form method="post" action="AddBoardCtrl" name="boardForm" enctype="multipart/form-data">
+	    <input type="hidden" name="board_id" value="admin">
+	    <table class="table">
+	        <tr>
+	            <td id="title">작성자</td>
+	            <td><input type="text" name="result_name" value="관리자" readonly /></td>
+	        </tr>
+	            <tr>
+	            <td id="title">제 목</td>
+	            <td><input name="board_subject" type="text" size="70" maxlength="100" value=""/></td>        
+	        </tr>
+	        <tr>
+	            <td id="title">내 용</td>
+	            <td><textarea name="board_content" cols="72" rows="20"></textarea></td>        
+	        </tr>
+	        <tr>
+	            <td id="title">파일첨부</td>
+	            <td><input type="file" name="board_file" /></td>    
+	        </tr>
+	        <tr align="center" valign="middle">
+	            <td colspan="5">
+	                <input type="reset" value="작성취소" class="btn btn-primary">
+	                <input type="submit" value="등록" class="btn btn-primary">
+	                <input type="button" value="목록" class="btn btn-primary">            
+	            </td>
+	        </tr>
+	    </table>    
+	    </form>
+
+
+
+
+
+
+
+

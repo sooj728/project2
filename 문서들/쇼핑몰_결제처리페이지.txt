@@ -1,0 +1,88 @@
+결제 페이지 뷰 (payment.jsp)
+
+상품 페이지(getProduct.jsp)에서 [구매]버튼에 a태그의 href속성에 "payment.jsp?price=${pro.price }&cnt=${pro.procnt }&proname=${pro.proname }"
+결제 페이지(payment.jsp)
+<%
+	int cnt = Integer.parseInt(request.getParameter("cnt"));
+	int price = Integer.parseInt(request.getParameter("price"));
+	int amount = price * cnt;
+%>
+	<form action="AddPaymentCtrl" onsubmit="return payCheck(this)">
+	<!-- 로그인시 여기에 표시할 내용을 세션에 정보를 저장해야함 : session.setAttribute("cusid", cusid) -->
+	결제자 아이디 : <input type="text" value="${session.getAttribute('cusid') }" name="cusid" readonly />
+		<%-- <%=session.getAttribute("cusid") %>  -->
+	결제자 이름 :  ${session.getAttribute("cusname") }
+	결제자 이메일 : ${session.getAttribute("cusemail") }
+	결제자 연락처 : ${session.getAttribute("custel") }
+
+	배송지 주소 : <input type="text" name="addr1" id="addr1" required />
+		<input type="text" name="addr2" id="addr2" required />
+	배송시 참고사항 : <input type="text" name="contact" id="contact" />
+	배송지 우편번호 : <input type="text" name="postcode" id="postcode" required />
+	배송상품 : ${request.getParameter("proname") }
+	<%-- <%=request.getParameter("proname") %> -->
+	주문수량 : ${request.getParameter("cnt") }
+	결제할 금액 : ${amount }
+	결제 방식 : select
+	결제 번호 : select
+	<input type="hidden" name="complete" id="complete" value="no">
+
+	<input type="submit" value="결제완료">	
+	<input type="reset" value="결제취소">	
+	<input type="button" id="paybtn" value="결제하기" />
+	</form>
+	<!-- 결제하기 버튼을 누를 때 결제가 완료되면, complete 요소의 값을 yes로 변경하는 자바스크립트 -->
+	<script>
+	document.getElementById("paybtn").addEventListener("click", function() {
+		//결제모듈 연결
+		document.getElementById("complete").value = "yes";
+	});
+	function payCheck(f) {
+		if(f.complete.value=="yes") {
+			f.submit();
+			return false;
+		} else {
+			alert("결제를 하지 않으셨습니다. 결제하기 버튼을 눌러 결제하시기 바랍니다");
+			document.getElementById("paybtn").focus();
+			return false;
+		}
+	}
+	</script>
+
+----------------------------------------------------------------------------------------
+--------------- 결제 컨트롤러(AddPaymentCtrl) ----------------------------------
+
+	// (결제번호), 사용자 아이디, 상품번호, 수량, 금액, 배송지주소, 요청사항, 결제계좌, 결제암호, (결제일) 를 vo에 넣어 dao에 전달
+	PaymentVO vo = new PaymentVO();
+	vo.setUserid(request.getParameter("cusid"));
+	,....
+
+	PaymentDAO dao = new PaymentDAO();
+	int cnt = dao.addPayment(vo);
+
+	if(cnt > 0) {
+		response.sendRedirect("GetProductListCtrl");
+	} else {
+		response.sendRedirect("GetProductCtrl?proid="+proid);
+	}
+
+
+-----------------------------------------------------------------------------------------
+---------------  PaymentDAO ----------------------------------
+public int addPayment(PaymentVO vo) {
+	int cnt = 0;
+	String sql;
+	try {
+
+	} catch(Exception e){
+
+	}
+	return cnt;
+}
+
+
+
+
+
+
+

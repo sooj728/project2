@@ -1,0 +1,31 @@
+package com.shop.view;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.shop.biz.ProlistDAO;
+import com.shop.model.ProlistVO;
+
+@WebServlet("/GetProductListCtrl")
+public class GetProductListCtrl extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("text/html; charset=UTF-8");
+		request.setCharacterEncoding("UTF-8");
+		ProlistDAO dao = new ProlistDAO();
+		ArrayList<ProlistVO> proList = dao.getProlistList();
+		
+		request.setAttribute("proList", proList);	//보낼 객체를 선언
+		RequestDispatcher view = request.getRequestDispatcher("getProductList.jsp");	//보내질 곳 선언
+		view.forward(request, response);  //실제 보낼 객체를 보내질 곳에 송신
+	}
+
+}
