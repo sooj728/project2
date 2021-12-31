@@ -10,14 +10,11 @@ import java.util.ArrayList;
 import com.shop.model.DBConn;
 import com.shop.model.BuyVO;
 
-
-
-
 public class BuyDAO {
 	private Connection conn = null;
 	private PreparedStatement stmt = null;
 	private ResultSet rs = null;
-	//구매 내역 조회 (관리자)
+	//전체 회원 결제 내역 조회 (관리자)
 	public ArrayList<BuyVO> adminGetBuyList() {
 		ArrayList<BuyVO> buyList = null;
 		try {
@@ -80,7 +77,7 @@ public class BuyDAO {
 		return buyList;	
 	}
 	
-	//
+	//회원용 결제 내역 조회
 	public BuyVO getBuy(BuyVO vo) {
 		BuyVO buy= null;
 		try {
@@ -123,7 +120,7 @@ public class BuyDAO {
 		return buy;
 	}
 	
-	//구매목록 삭제
+	//결제 기록 삭제
 	public int deleteBuy(BuyVO vo) {
 		int r = 0;
 		try {
@@ -149,7 +146,7 @@ public class BuyDAO {
 		return r;
 	}
 	
-	//구매 추가
+	//결제 추가
 	public int addBuy(BuyVO vo) {
 		int cnt = 0;
 		
@@ -188,7 +185,7 @@ public class BuyDAO {
 		}
 		return cnt;
 	}
-	//구매 목록
+	//회원별 결제 목록
 	public ArrayList<BuyVO> getBuyList(BuyVO vo) {
 		ArrayList<BuyVO> buyList = null;
 		try {

@@ -18,6 +18,18 @@ public class AddBuyCtrl extends HttpServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html; charset=UTF-8");
 		request.setCharacterEncoding("UTF-8");
+		String u_id = request.getParameter("u_id");
+		String email = request.getParameter("email");
+		String tel = request.getParameter("tel");
+		String add1 = request.getParameter("add1");
+		String add2 = request.getParameter("add2");
+		String add3 = request.getParameter("add3");
+		String note = request.getParameter("note");
+		String pname = request.getParameter("pname");
+		int sum1 = Integer.parseInt(request.getParameter("sum1"));
+		String cpuse = request.getParameter("cpuse");
+		String paytype = request.getParameter("paytype");
+		String payprop = request.getParameter("payprop");
 		
 		BuyVO vo = new BuyVO();
 		vo.setBuyer(request.getParameter("u_id"));
@@ -34,6 +46,7 @@ public class AddBuyCtrl extends HttpServlet {
 		vo.setCpuse(request.getParameter("cpuse"));
 		vo.setPaytype(request.getParameter("paytype"));
 		vo.setPayprop(request.getParameter("payprop"));
+		
 		BuyDAO dao = new BuyDAO();
 		int cnt = dao.addBuy(vo);
 		

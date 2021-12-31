@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-
 import com.shop.model.DBConn;
 import com.shop.model.OrderBasketVO;
 
@@ -120,7 +119,7 @@ public class OrderBasketDAO {
 	}
 	
 	//상품 추가
-	public int insertOrderBasket(OrderBasketVO vo) {
+	public int addOrderBasket(OrderBasketVO vo) {
 		int cnt = 0;
 		try {
 			conn = DBConn.getConnection();
